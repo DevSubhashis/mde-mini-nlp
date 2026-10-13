@@ -1,0 +1,182 @@
+FLOW
+===============
+
+Text
+ ↓
+Tokenizer
+ ↓
+POS Tagger
+ ↓
+Rule Engine
+ ↓
+Dictionary Engine (Trie + Fuzzy)
+ ↓
+Entity Resolver
+ ↓
+Post Processing
+ ↓
+Final Output
+
+
+
+🧠 Big Picture (Mental Model)
+Text
+ ↓
+Tokenizer
+ ↓
+POS Tagger
+ ↓
+Rule Engine
+ ↓
+Dictionary Engine (Trie + Fuzzy)
+ ↓
+Entity Resolver
+ ↓
+Post Processing
+ ↓
+Final Output
+🔍 Step-by-Step Flow (Your Code Execution)
+1️⃣ core.js → extract()
+
+This is your entry point:
+
+extract(text) {
+  tokens = tokenizer.tokenize(text)
+  taggedTokens = posTagger.tag(tokens)
+
+  ruleEntities = ruleEngine.run(taggedTokens)
+  dictEntities = dictionaryEngine.lookup(taggedTokens)
+
+  allEntities = [...ruleEntities, ...dictEntities]
+
+  resolved = resolver.resolve(allEntities)
+
+  final = postProcessors(resolved)
+
+  return final
+}
+🧩 2️⃣ Tokenizer (tokenizer.js)
+Input:
+"I live in New York and work at Gooogle"
+Output (simplified):
+[
+  { value: "I", normalized: "i", index: 0 },
+  { value: "live", normalized: "live", index: 1 },
+  { value: "in", normalized: "in", index: 2 },
+  { value: "New", normalized: "new", index: 3 },
+  { value: "York", normalized: "york", index: 4 },
+  { value: "and", normalized: "and", index: 5 },
+  { value: "work", normalized: "work", index: 6 },
+  { value: "at", normalized: "at", index: 7 },
+  { value: "Gooogle", normalized: "gooogle", index: 8 }
+]
+
+👉 Important:
+
+Keeps positions
+Keeps original + normalized
+🧠 3️⃣ POS Tagger (posTagger.js)
+
+Adds grammar awareness:
+
+[
+  { value: "I", pos: "PRON" },
+  { value: "live", pos: "NOUN" },
+  { value: "in", pos: "PREP" },
+  { value: "New", pos: "PROPN" },
+  { value: "York", pos: "PROPN" },
+  ...
+  { value: "Gooogle", pos: "PROPN" }
+]
+
+👉 Now rules can say:
+
+only match PROPN → names/places
+⚙️ 4️⃣ Rule Engine (ruleEngine.js)
+
+👉 Applies your manual rules
+
+Example rule:
+
+"work at X" → company
+What it does:
+Loops tokens LEFT → RIGHT
+Applies each rule
+Produces entities
+Output (example):
+[
+  {
+    label: "company",
+    value: "Gooogle",
+    ruleId: "company_after_at",
+    confidence: 0.9
+  }
+]
+
+👉 Important:
+
+This is raw extraction
+Can be wrong (like Gooogle)
+📚 5️⃣ Dictionary Engine (dictionaryEngine.js)
+
+This is your smart layer
+
+5.1 Exact Match (Trie)
+
+Checks:
+
+New York → FOUND ✅
+
+👉 Output:
+
+{
+  label: "city",
+  value: "New York",
+  ruleId: "dict_city_exact",
+  confidence: 0.95
+}
+5.2 Fuzzy Match
+
+Now for:
+
+Gooogle → Google
+Steps:
+normalize:
+gooogle → gooogle
+normalize repeats:
+gooogle → google
+compare with dictionary:
+google vs google → distance = 0
+
+👉 Output:
+
+{
+  label: "company",
+  value: "Google",   // corrected
+  ruleId: "dict_company_fuzzy",
+  confidence: 0.75
+}
+🧠 Combined Entities
+
+Now system merges:
+
+[
+  { city: "New York", confidence: 0.95 },
+  { company: "Gooogle", confidence: 0.9 },   // from rule
+  { company: "Google", confidence: 0.75 }    // from fuzzy
+]
+⚖️ 6️⃣ Entity Resolver (entityResolver.js)
+
+This is the judge ⚖️
+
+Conflict: company
+Gooogle (0.9)
+Google (0.75)
+
+👉 According to rules:
+
+Higher confidence → wins
+
+So:
+
+company = "Gooogle" ❌ (problem)

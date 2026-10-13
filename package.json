@@ -1,0 +1,36 @@
+{
+  "name": "mde-mini-nlp",
+  "version": "1.0.0",
+  "description": "A lightweight, extensible rule- and dictionary-based named-entity extraction framework.",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./plugins/name": "./plugins/namePlugin.js",
+    "./plugins/dictionary": "./plugins/dictionaryPlugin.js",
+    "./plugins/post-processing": "./plugins/postProcessingPlugin.js"
+  },
+  "files": [
+    "index.js",
+    "lib",
+    "plugins",
+    "utils/levenshtein.js",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node test.js",
+    "prepack": "npm test"
+  },
+  "keywords": [
+    "nlp",
+    "ner",
+    "named-entity-recognition",
+    "entity-extraction",
+    "dictionary",
+    "rule-engine"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  }
+}
