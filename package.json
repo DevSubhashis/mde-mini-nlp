@@ -1,5 +1,5 @@
 {
-  "name": "mde-mini-nlp",
+  "name": "@devsubhashis/mde-mini-nlp",
   "version": "1.0.0",
   "description": "A lightweight, extensible rule- and dictionary-based named-entity extraction framework.",
   "main": "index.js",
